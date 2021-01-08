@@ -1,0 +1,111 @@
+# Default values for example-app-mongodb.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: docker.io/bitnami/mongodb
+  tag: 4.2.6-debian-10-r13
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+# path to shell command, usually /bin/bash
+# must be present in specified image
+shellPath: "/bin/bash"
+
+cronjob:
+  # schedule for the cronjob that performs mongodb backup
+  # by default daily at 1:00
+  schedule: "00 1 * * *"
+
+envs:
+  MONGODUMP: "mongodump"
+  MONGOHOST: "mongodb"
+  MONGOUSER: "root"
+  MONGOPASSWORD: "supersecret"
+
+additionalEnvs: {}
+  # insert here any additional variable needed by your container
+  #MYVAR1: "example"
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext:
+  # fsGroup must match the gid used to run mongodump inside the container
+  fsGroup: 1001
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# pvc for MongoDB backup
+pvc:
+  accessMode: ReadWriteOnce
+  size: 10Gi
+  class: standard
+
+stash:
+  # set to true to activate stash backup
+  # requires at least stash v0.10.0
+  # if active exactly one backend must be activated and all relative parameters must be set
+  active: false
+  # schedule for stash backup
+  # by default daily at 2:00
+  # set after a sufficient time interval from cronjob.schedule
+  schedule: "00 2 * * *"
+  retention:
+    # backup repository retention (in days)
+    keepLast: 60
+    # prune repository
+    prune: true
+  swift:
+    # use swift backend
+    active: false
+    # swift auth parameters
+    osAuthUrl: "https://auth.cloud.ovh.net/v3/"
+    osProjectDomainName: "Default"
+    osProjectName: ""
+    osRegionName: "DE"
+    osUserDomainName: "Default"
+    osUsername: "myswiftuser"
+    osPassword: "myswiftpassword"
+    # swift container and prefix
+    container: "mycontainer"
+    prefix: "my/prefix"
+  # password for restic encryption
+  resticPassword: "changeme"

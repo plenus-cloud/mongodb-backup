@@ -1,0 +1,52 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: {{ include "mongodb-backup.fullname" . }}
+  labels:
+    {{- include "mongodb-backup.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.cronjob.schedule | quote }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          {{- with .Values.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          serviceAccountName: {{ include "mongodb-backup.serviceAccountName" . }}
+          containers:
+          - name: {{ .Chart.Name }}
+            securityContext:
+              {{- toYaml .Values.securityContext | nindent 14 }}
+            image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+            imagePullPolicy: {{ .Values.image.pullPolicy }}
+            command: [ {{ .Values.shellPath | quote }} ]
+            args: ["-c", "cd /dump && rm -fr dump/ mongodump.tgz && $MONGODUMP --host $MONGOHOST -u $MONGOUSER -p $MONGOPASSWORD && tar zcvf mongodump.tgz dump/ && rm -fr dump/"]
+            envFrom:
+              - configMapRef:
+                  name: {{ include "mongodb-backup.fullname" . }}-envs
+            resources:
+              {{- toYaml .Values.resources | nindent 14 }}
+            volumeMounts:
+            - mountPath: "/dump"
+              name: mongo-backup
+          restartPolicy: Never
+          volumes:
+          - name: mongo-backup
+            persistentVolumeClaim:
+              claimName: {{ include "mongodb-backup.fullname" . }}
+          securityContext:
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
+          {{- with .Values.nodeSelector }}
+          nodeSelector:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.affinity }}
+          affinity:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.tolerations }}
+          tolerations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}

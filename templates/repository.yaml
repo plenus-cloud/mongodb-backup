@@ -1,0 +1,16 @@
+{{- if .Values.stash.active -}}
+apiVersion: stash.appscode.com/v1alpha1
+kind: Repository
+metadata:
+  name: {{ include "mongodb-backup.fullname" . }}
+  labels:
+    {{- include "mongodb-backup.labels" . | nindent 4 }}
+spec:
+  backend:
+{{ if .Values.stash.swift.active }}
+    swift:
+      container: {{ .Values.stash.swift.container | quote }}
+      prefix: {{ .Values.stash.swift.prefix | quote }}
+{{ end }}
+    storageSecretName: {{ include "mongodb-backup.fullname" . }}-stash
+{{- end -}}

@@ -1,0 +1,28 @@
+{{- if .Values.stash.active -}}
+apiVersion: stash.appscode.com/v1beta1
+kind: BackupConfiguration
+metadata:
+  name: {{ include "mongodb-backup.fullname" . }}
+  labels:
+    {{- include "mongodb-backup.labels" . | nindent 4 }}
+spec:
+  task:
+    name: pvc-backup
+  repository:
+    name: {{ include "mongodb-backup.fullname" . }}
+  retentionPolicy:
+    keepLast: {{ .Values.stash.retention.keepLast }}
+    name: mongodb-retention-policy
+    prune: {{ .Values.stash.retention.prune }}
+  schedule: {{ .Values.stash.schedule | quote }}
+  target:
+    ref:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: {{ include "mongodb-backup.fullname" . }}
+    paths:
+    - /dump
+    volumeMounts:
+    - mountPath: /dump
+      name: {{ include "mongodb-backup.fullname" . }}
+{{- end }}

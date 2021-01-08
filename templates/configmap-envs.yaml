@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "mongodb-backup.fullname" . }}-envs
+  labels:
+{{ include "mongodb-backup.labels" . | indent 4 }}
+data:
+  MONGODUMP: {{ .Values.envs.MONGODUMP | quote }}
+  MONGOHOST: {{ .Values.envs.MONGOHOST | quote }}
+  MONGOUSER: {{ .Values.envs.MONGOUSER | quote }}
+  MONGOPASSWORD: {{ .Values.envs.MONGOPASSWORD | quote }}
+  {{- range $key, $value := .Values.additionalEnvs }}
+    {{ $key }}: {{ $value | quote }}
+  {{- end }}

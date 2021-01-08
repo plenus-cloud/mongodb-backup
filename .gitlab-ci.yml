@@ -1,0 +1,23 @@
+stages:
+  - package
+
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+  IMAGE_NAME: $CI_REGISTRY_IMAGE
+  DEPLOY_FULLNAME: $CI_PROJECT_NAME
+
+package-chart:
+  stage: package
+  image: plenus/gcloud-kubectl-helm:3.3.1-308.0.0-1.19.0
+  variables:
+    TAG: $CI_COMMIT_TAG
+  script:
+    - echo $GCS_CREDENTIALS | base64 -d > /tmp/gcs-cred.json
+    - export GOOGLE_APPLICATION_CREDENTIALS="/tmp/gcs-cred.json"
+    - helm repo add plenus gs://plenus-charts/stable
+    - helm repo update
+    - rm -f *.tgz
+    - helm package ./ --app-version $CI_COMMIT_TAG --version $CI_COMMIT_TAG
+    - helm gcs push $CI_PROJECT_NAME-*.tgz plenus --public
+  only:
+    - tags
