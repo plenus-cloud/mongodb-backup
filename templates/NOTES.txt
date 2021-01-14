@@ -1,12 +1,12 @@
 1. Check the pvc with:
-  kubectl --namespace {{ .Release.Namespace }} get pvc {{ include "mongodb-backup.name" . }}
+  kubectl --namespace {{ .Release.Namespace }} get pvc {{ include "mongodb-backup.fullname" . }}
 It will be provisioned only after the first backup.
 
 {{- if .Values.stash.active -}}
 2. Check the backupconfiguration with:
-  kubectl --namespace {{ .Release.Namespace }} get backupconfiguration {{ include "mongodb-backup.name" . }}
+  kubectl --namespace {{ .Release.Namespace }} get backupconfiguration {{ include "mongodb-backup.fullname" . }}
 3. Check the repository with:
-  kubectl --namespace {{ .Release.Namespace }} get repositories {{ include "mongodb-backup.name" . }}
+  kubectl --namespace {{ .Release.Namespace }} get repositories {{ include "mongodb-backup.fullname" . }}
 4. Active backup sessions can be seen with:
   kubectl --namespace {{ .Release.Namespace }} get backupsessions
 {{- end }}
